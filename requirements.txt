@@ -1,0 +1,13 @@
+# Data ingestion
+requests==2.31.0
+pandas==2.1.0
+
+# Database connection
+psycopg2-binary==2.9.7
+sqlalchemy==2.0.20
+
+# Environment variables
+python-dotenv==1.0.0
+
+# dbt
+dbt-postgres==1.7.0

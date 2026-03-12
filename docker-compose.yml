@@ -1,0 +1,36 @@
+
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: health_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"          
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 10s
+      retries: 5
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: health_metabase
+    ports:
+      - "3000:3000"         
+    depends_on:
+      - postgres
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: ${POSTGRES_DB}
+      MB_DB_PORT: 5432
+      MB_DB_USER: ${POSTGRES_USER}
+      MB_DB_PASS: ${POSTGRES_PASSWORD}
+      MB_DB_HOST: postgres
+
+volumes:
+  postgres_data:            
