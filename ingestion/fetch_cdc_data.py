@@ -41,7 +41,7 @@ API_PARAMS = {
     "$limit": 1000,
     "$offset": 0,
 }
-
+CDC_APP_TOKEN = os.environ.get("CDC_APP_TOKEN")  
 DB_CONFIG = {
     "host": os.environ.get('POSTGRES_HOST', 'localhost'),
     "port": os.environ.get('POSTGRES_PORT', 5434),
@@ -82,7 +82,7 @@ def fetch_from_api(url: str, params: dict) -> list[dict]:
         url,
         params=params,
         timeout=30,
-        headers={"Accept": "application/json"}
+        headers={"Accept": "application/json", "X-App-Token": CDC_APP_TOKEN}
     )
 
     response.raise_for_status()
