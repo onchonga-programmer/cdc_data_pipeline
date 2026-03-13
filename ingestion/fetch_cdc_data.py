@@ -36,7 +36,7 @@ log = logging.getLogger(__name__)
 # ─────────────────────────────────────────────
 # CONFIGURATION
 # ─────────────────────────────────────────────
-API_URL = "https://data.cdc.gov/resource/g4ie-h725.json"
+API_URL = "https://data.cdc.gov/resource/9dzk-mvmi.json"
 API_PARAMS = {
     "$limit": 1000,
     "$offset": 0,
