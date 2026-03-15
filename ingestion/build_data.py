@@ -1,6 +1,5 @@
 
 
-
 import psycopg2
 import logging
 import os
@@ -57,6 +56,7 @@ CREATE TABLE IF NOT EXISTS reporting.monthly_death_trends (
 );
 
 CREATE TABLE IF NOT EXISTS reporting.cause_of_death_summary (
+
     year                    INTEGER         NOT NULL,
     cause                   VARCHAR(100)    NOT NULL,
     total_deaths            INTEGER,
@@ -81,7 +81,6 @@ CREATE TABLE IF NOT EXISTS reporting.covid_impact (
 
 # ─────────────────────────────────────────────
 # STEP 2: TRANSFORM QUERIES
-# These read from silver and shape data for reporting
 # ─────────────────────────────────────────────
 
 # Table 1 — Monthly trends with percentages
@@ -127,9 +126,7 @@ DO UPDATE SET
     loaded_at            = NOW();
 """
 
-# Table 2 — Yearly cause summary (wide → long transformation)
-# Notice how we UNPIVOT the wide silver table into long format
-# Each cause becomes its own row instead of its own column
+
 CAUSE_SUMMARY_SQL = """
 INSERT INTO reporting.cause_of_death_summary (
     year, cause, total_deaths, avg_monthly_deaths, pct_of_all_deaths
