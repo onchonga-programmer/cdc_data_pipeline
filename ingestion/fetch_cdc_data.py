@@ -38,8 +38,9 @@ log = logging.getLogger(__name__)
 # ─────────────────────────────────────────────
 API_URL = "https://data.cdc.gov/resource/9dzk-mvmi.json"
 API_PARAMS = {
-    "$limit": 1000,
+    "$limit": 2000,
     "$offset": 0,
+    "$where":"year>='2019'"
 }
 CDC_APP_TOKEN = os.environ.get("CDC_APP_TOKEN")  
 DB_CONFIG = {

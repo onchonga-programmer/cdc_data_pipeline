@@ -225,22 +225,18 @@ SELECT
     current.all_cause                                               AS total_deaths,
     current.covid_19_underlying                                     AS covid_deaths,
 
-    -- Non-covid deaths = total minus covid
     (current.all_cause - COALESCE(current.covid_19_underlying, 0)) AS non_covid_deaths,
 
-    -- COVID as percentage of all deaths
-    ROUND((current.covid_19_underlying::FLOAT 
+    ROUND((current.covid_19_underlying::FLOAT
         / NULLIF(current.all_cause, 0) * 100)::NUMERIC, 2)        AS covid_pct,
 
-    -- Excess deaths vs same month previous year
-    -- If January 2021 had 50k more deaths than January 2020
-    -- that excess is what we measure here
-    (current.all_cause - COALESCE(prev.all_cause, current.all_cause)) 
-                                                                    AS excess_vs_prev_year
+    CASE
+        WHEN prev.all_cause IS NULL THEN NULL
+        ELSE current.all_cause - prev.all_cause
+    END                                                             AS excess_vs_prev_year
 
 FROM transformed.cdc_deaths current
 
--- Self join: match current row with same month, previous year
 LEFT JOIN transformed.cdc_deaths prev
     ON  prev.year  = current.year - 1
     AND prev.month = current.month
@@ -253,7 +249,8 @@ DO UPDATE SET
     covid_pct           = EXCLUDED.covid_pct,
     excess_vs_prev_year = EXCLUDED.excess_vs_prev_year,
     loaded_at           = NOW();
-"""
+"""               
+
 
 # ─────────────────────────────────────────────
 # STEP 3: EXECUTE
