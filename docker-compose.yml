@@ -1,6 +1,29 @@
+version: '3.8'
+
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.8.1
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    AIRFLOW__CORE__FERNET_KEY: ''
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
+    # Pass your existing env variables into Airflow containers
+    POSTGRES_HOST: postgres
+    POSTGRES_PORT: 5432
+    POSTGRES_DB: ${POSTGRES_DB}
+    POSTGRES_USER: ${POSTGRES_USER}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags        
+    - ./ingestion:/opt/airflow/ingestion     
+    - ./logs:/opt/airflow/logs
+  depends_on:
+    postgres:
+      condition: service_healthy
 
 services:
-
   postgres:
     image: postgres:15
     container_name: health_postgres
@@ -9,9 +32,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5434:5432"          
+      - "5434:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data   
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
       interval: 10s
@@ -21,7 +44,7 @@ services:
     image: metabase/metabase:latest
     container_name: health_metabase
     ports:
-      - "3000:3000"         
+      - "3000:3000"
     depends_on:
       - postgres
     environment:
@@ -32,5 +55,35 @@ services:
       MB_DB_PASS: ${POSTGRES_PASSWORD}
       MB_DB_HOST: postgres
 
+  airflow-init:
+    <<: *airflow-common
+    container_name: health_airflow_init
+    command: >
+      bash -c "
+        airflow db init &&
+        airflow users create
+          --username admin
+          --password admin
+          --firstname Brenda
+          --lastname Admin
+          --role Admin
+          --email admin@example.com
+      "
+    restart: on-failure
+
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: health_airflow_webserver
+    command: webserver
+    ports:
+      - "8080:8080"
+    restart: always
+
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: health_airflow_scheduler
+    command: scheduler
+    restart: always
+
 volumes:
-  postgres_data:            
+  postgres_data:
