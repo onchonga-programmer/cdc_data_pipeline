@@ -5,7 +5,7 @@ CDC Health Pipeline DAG
 """
 
 from airflow import DAG
-from airflow.operators.bash import BashOperator
+from airflow.operators.bash_operator import BashOperator
 from datetime import datetime, timedelta
 
 # ─────────────────────────────────────────────
@@ -14,8 +14,8 @@ from datetime import datetime, timedelta
 # ─────────────────────────────────────────────
 default_args = {
     "owner": "brenda",
-    "retries": 1,                           # retry once if a task fails
-    "retry_delay": timedelta(minutes=5),    # wait 5 mins before retrying
+    "retries": 1,                           
+    "retry_delay": timedelta(minutes=5),    
     "email_on_failure": False,
 }
 
@@ -56,10 +56,12 @@ with DAG(
         bash_command="cd /opt/airflow && python ingestion/build_data.py",
     )
 
-    # ─────────────────────────────────────────
-    # PIPELINE ORDER
-    # >> means "then run this next"
-    # fetch must succeed before transform runs
-    # transform must succeed before gold runs
-    # ─────────────────────────────────────────
+    
     fetch_task >> transform_task >> gold_task
+    test_task = BashOperator(
+    task_id="test_gold_quality",
+    bash_command="cd /opt/airflow && python ingestion/test_gold_layer.py",
+)
+
+# Update the pipeline order
+    fetch_task >> transform_task >> gold_task >> test_task
