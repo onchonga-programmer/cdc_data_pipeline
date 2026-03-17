@@ -70,7 +70,11 @@ CREATE INDEX IF NOT EXISTS idx_cdc_raw_ingested_at
 # ─────────────────────────────────────────────
 # STEP 2: FETCH DATA FROM THE API
 # ─────────────────────────────────────────────
-def fetch_from_api(url: str, params: dict) -> list[dict]:
+# FIXED — works on Python 3.8+
+from typing import List
+
+def fetch_from_api(url: str, params: dict) -> List[dict]:
+
     """
     Fetch data from a REST API endpoint.
 
@@ -97,7 +101,7 @@ def fetch_from_api(url: str, params: dict) -> list[dict]:
 # ─────────────────────────────────────────────
 # STEP 3: STORE RAW DATA INTO POSTGRES
 # ─────────────────────────────────────────────
-def store_raw_records(conn, records: list[dict], source_url: str, batch_id: str):
+def store_raw_records(conn, records: List[dict], source_url: str, batch_id: str):
     """
     Insert raw JSON records into the bronze layer table.
     """
